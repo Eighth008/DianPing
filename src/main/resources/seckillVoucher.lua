@@ -1,0 +1,23 @@
+---
+--- Created by Eight
+--- DateTime: 2026/4/21 16:18
+---
+
+local voucherId = ARGV[1]
+local userId = ARGV[2]
+local id = ARGV[3]
+
+local stockKey = "seckill:stock:" .. voucherId
+local orderKey = "seckill:order:" .. voucherId
+if (tonumber(redis.call('get', stockKey)) <= 0) then
+    return 1
+end
+
+if (redis.call('sismember', orderKey, userId) == 1) then
+    return 2
+end
+
+redis.call('incrby', stockKey, -1)
+redis.call('sadd', orderKey, userId)
+redis.call('xadd', 'stream.orders','*','userId',userId,'voucherId',voucherId,'id',id)
+return 0
