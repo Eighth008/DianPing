@@ -122,6 +122,11 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         return Result.ok(shopList);
     }
 
+    @Override
+    public Result queryShopByIdWithTest(Long id) {
+        return Result.ok(getById(id));
+    }
+
 /*
     private Shop queryWithPassThrough(Long id) {
         String key = RedisConstants.CACHE_SHOP_KEY + id;

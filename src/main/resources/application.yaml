@@ -5,9 +5,9 @@ spring:
     name: hmdp
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/dianping?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: 123456
+    url: Your URL
+    username: Your Username
+    password: Your Password
   jackson:
     default-property-inclusion: non_null # JSON处理时忽略非空字段
   data:
@@ -20,8 +20,13 @@ spring:
           max-idle: 10
           min-idle: 1
           time-between-eviction-runs: 10s
+  profiles:
+    active: dev
 mybatis-plus:
   type-aliases-package: com.hmdp.entity # 别名扫描包
 logging:
   level:
     com.hmdp: debug
+jwt:
+  secret: hmdp_jwt_secret_key_for_login_and_authentication_2026
+  expiration: 1800000 # 30 minutes in milliseconds

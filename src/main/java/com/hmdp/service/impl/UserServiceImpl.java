@@ -10,10 +10,7 @@ import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.User;
 import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserService;
-import com.hmdp.utils.RedisConstants;
-import com.hmdp.utils.RegexUtils;
-import com.hmdp.utils.SystemConstants;
-import com.hmdp.utils.UserHolder;
+import com.hmdp.utils.*;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +42,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    @Resource
+    private JwtUtils jwtUtils;
+
     @Override
     public Result sendCode(String phone, HttpSession session) {
         // TODO 发送短信验证码并保存验证码
@@ -75,7 +75,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (user == null) {
             user = createNewUser(phone);
         }
-        String loginCode = UUID.randomUUID().toString();
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
         Map<String, Object> userDTOMap = BeanUtil.beanToMap(
                 userDTO, new HashMap<>(),
@@ -84,11 +83,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                         setFieldValueEditor(
                                 (fieldKey, fieldValue) -> fieldValue.toString()
                         ));
-        String realCode = RedisConstants.LOGIN_USER_KEY + loginCode;
-        stringRedisTemplate.opsForHash().putAll(realCode, userDTOMap);
-        stringRedisTemplate.expire(realCode, RedisConstants.LOGIN_USER_TTL, TimeUnit.SECONDS);
+        String token = jwtUtils.createToken(userDTOMap, user.getId());
         log.info(user.toString());
-        return Result.ok(loginCode);
+        return Result.ok(token);
     }
 
     @Override
