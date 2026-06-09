@@ -5,6 +5,7 @@ import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.dto.LoginFormDTO;
+import com.hmdp.dto.Msg;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.User;
@@ -15,10 +16,12 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.asm.Advice;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -45,6 +48,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Resource
     private JwtUtils jwtUtils;
 
+    @Resource
+    RestTemplate restTemplate;
+
+    @Value("${send.message.url}")
+    String url;
+
     @Override
     public Result sendCode(String phone, HttpSession session) {
         // TODO 发送短信验证码并保存验证码
@@ -53,6 +62,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             return Result.fail("电话号码格式错误！");
         }
         String s = RandomUtil.randomNumbers(6);
+        restTemplate.getForObject(url, Msg.class, s, RedisConstants.LOGIN_CODE_TTL, phone);
         stringRedisTemplate.opsForValue().set(RedisConstants.LOGIN_CODE_KEY + phone, s, RedisConstants.LOGIN_CODE_TTL, TimeUnit.MINUTES);
         log.debug("code:{}", s);
         return Result.ok();

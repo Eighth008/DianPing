@@ -30,3 +30,6 @@ logging:
 jwt:
   secret: hmdp_jwt_secret_key_for_login_and_authentication_2026
   expiration: 1800000 # 30 minutes in milliseconds
+send:
+  message:
+    url: https://push.spug.cc/send/w0byPj9Zx6rpYQVL?code={code}&number={number}&targets={phone}
