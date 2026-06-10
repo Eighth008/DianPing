@@ -8,3 +8,6 @@ spring:
       host: localhost
 redisson:
   address: redis://localhost:6379
+logging:
+  level:
+    com.hmdp: info

@@ -17,6 +17,8 @@ import com.hmdp.utils.RedisConstants;
 import com.hmdp.utils.SystemConstants;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
@@ -51,6 +53,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 
     private static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newFixedThreadPool(10);
 
+    @Cacheable(value = "shop",key = "#id",unless = "#result == null")
     @Override
     public Result queryShopById(Long id) {
         //Shop shop = queryWithPassThrough(id);
@@ -98,18 +101,18 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 
         List<GeoResult<RedisGeoCommands.GeoLocation<String>>> content = search.getContent();
 
-        if(content.size()<=from){
+        if (content.size() <= from) {
             return Result.ok(Collections.emptyList());
         }
         content = content.stream().skip(from).toList();
 
         List<Long> ids = new ArrayList<>(content.size());
-        Map<String,Distance> distanceMap = new HashMap<>(content.size());
+        Map<String, Distance> distanceMap = new HashMap<>(content.size());
         for (GeoResult<RedisGeoCommands.GeoLocation<String>> result : content) {
             String id = result.getContent().getName();
             ids.add(Long.valueOf(id));
 
-            distanceMap.put(id,result.getDistance());
+            distanceMap.put(id, result.getDistance());
         }
 
         String idsStr = StrUtil.join(",", ids);
