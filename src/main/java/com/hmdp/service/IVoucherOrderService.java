@@ -19,4 +19,6 @@ public interface IVoucherOrderService extends IService<VoucherOrder> {
     //Result lockToBuyVoucher(Long voucherId);
 
     void lockToBuyVoucher(VoucherOrder voucherOrder);
+
+    Result voucher(Long voucherId);
 }

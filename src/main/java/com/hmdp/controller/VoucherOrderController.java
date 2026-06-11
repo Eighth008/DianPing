@@ -23,8 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class VoucherOrderController {
     @Resource
     IVoucherOrderService iVoucherOrderService;
-    @PostMapping("seckill/{id}")
+    @PostMapping("/seckill/{id}")
     public Result seckillVoucher(@PathVariable("id") Long voucherId) {
         return iVoucherOrderService.seckillVoucher(voucherId);
+    }
+    @PostMapping("/voucher/{id}")
+    public Result voucher(@PathVariable("id") Long voucherId) {
+        return iVoucherOrderService.voucher(voucherId);
     }
 }
