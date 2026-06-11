@@ -44,6 +44,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     ISeckillVoucherService iSeckillVoucherService;
 
     @Resource
+    com.hmdp.service.IVoucherService iVoucherService;
+
+    @Resource
     GlobalIDMaker globalIDMaker;
 
     @Resource
@@ -241,6 +244,52 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         }
 
         save(voucherOrder);
+    }
+
+    @Override
+    public Result voucher(Long voucherId) {
+        // 1. 查询优惠券信息
+        com.hmdp.entity.Voucher voucher = iVoucherService.getById(voucherId);
+        if (voucher == null) {
+            return Result.fail("优惠券不存在！");
+        }
+    
+        // 2. 判断是否为普通券（type=0为普通券，type=1为秒杀券）
+        if (voucher.getType() != 0) {
+            return Result.fail("该优惠券不是普通券！");
+        }
+    
+        // 3. 判断优惠券是否上架
+        if (voucher.getStatus() != 1) {
+            return Result.fail("优惠券未上架或已下架！");
+        }
+    
+        // 4. 获取用户ID
+        Long userId = UserHolder.getUser().getId();
+    
+        // 5. 检查用户是否已经购买过该优惠券
+        long count = query().eq("user_id", userId).eq("voucher_id", voucherId).count();
+        if (count > 0) {
+            return Result.fail("用户已经购买过该优惠券！");
+        }
+    
+        // 6. 创建订单
+        long orderId = globalIDMaker.makeId(KEY_PREFIX);
+        VoucherOrder voucherOrder = new VoucherOrder();
+        voucherOrder.setId(orderId);
+        voucherOrder.setUserId(userId);
+        voucherOrder.setVoucherId(voucherId);
+        voucherOrder.setPayType(1); // 默认余额支付
+        voucherOrder.setStatus(1); // 未支付状态
+    
+        // 7. 保存订单
+        boolean isSaved = save(voucherOrder);
+        if (!isSaved) {
+            return Result.fail("下单失败！");
+        }
+    
+        // 8. 返回订单ID
+        return Result.ok(orderId);
     }
     /*
     @Trans actional
